@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="apple-touch-icon" sizes="57x57" href="assets/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="assets/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="assets/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="assets/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="assets/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="assets/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="assets/favicon/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="assets/favicon/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+
+    <meta name="title" content="Face detection using javascript">
+    <meta name="description" content="Human face detection using javascript. ">
+    <meta name="keywords" content="Face Detection using javascript">
+    <meta name="robots" content="index, follow">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="language" content="English">
+
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+
+    <style type="text/css">
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 360px;
+        }
+
+        video,
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .onex-info {
+            color: #0d6efd;
+        }
+
+        .onex-success {
+            color: #02b160;
+            font-weight: 600;
+        }
+
+        .onex-danger {
+            color: #fb152b;
+            font-weight: 600;
+        }
+
+        button:disabled {
+            pointer-events: none;
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #ddd !important;
+            border-color: #ddd !important;
+        }
+
+        .gradient-text {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-align: center;
+            background-image: linear-gradient(45deg, #ff6a00, #ee0979, #8e2de2, #4a00e0, #ff6a00);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientAnimation 6s infinite linear;
+            letter-spacing: 2px;
+            text-shadow: 4px 4px 10px rgba(255, 105, 180, 0.3);
+            display: inline-block;
+        }
+
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+    </style>
+
+    <title>Face Detection App By Arindam Roy</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row mt-5">
+            <div class="col-md-12 text-center">
+                <h1 class="gradient-text"><strong>Face Detection App - By Arindam Roy</strong></h1>
+                <hr />
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <button type="button" class="btn btn-primary" id="takePhoto">
+                            Enable Camara & Take Your Photo
+                        </button>
+                        <button type="button" class="btn btn-success d-none" id="captureButton">
+                            Capture Photo
+                        </button>
+                        <p class="d-none mt-2 onex-info" id="takePhotoInfo">Please adjust your full face into the camara
+                            area</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="camera-container">
+                            <div class="text-center" id="userBox">
+                                <img src="assets/user.png" style="max-width: 100%;">
+                            </div>
+                            <div class="text-center mt-5 d-none" id="camaraLoader">
+                                <div class="spinner-border text-primary" style="width: 5rem; height: 5rem;"
+                                    role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="text-dark fw-bold mt-2">... L O A D I N G ...</p>
+                            </div>
+
+                            <video id="webcam" autoplay></video>
+                            <canvas id="overlayCanvas"></canvas>
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <p id="status" class="text-dark fw-bold">Authenticate Yourself</p>
+                <p id="ageGenderText" class="text-dark fw-bold d-none"></p>
+                <img id="capturedImage" class="img-thumbnail d-none" />
+                <div class="mt-2">
+                    <button type="button" class="btn btn-dark d-none" id="downloadPhoto">⬇️ Download Photo</button>
+                    <p class="text-success fw-bold mt-2" id="capturedMassage"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <script src="assets/sweetalert2@11.js"></script>
+    <script src="assets/face-api.js/dist/face-api.min.js"></script>
+    <script>
+
+        Swal.fire({
+            title: "Please wait for a while",
+            html: "System is preparing to capture your photo",
+            timerProgressBar: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const webcam = document.getElementById("webcam");
+        const overlayCanvas = document.getElementById("overlayCanvas");
+        //const overlayCtx = overlayCanvas.getContext("2d");
+        const overlayCtx = overlayCanvas.getContext("2d", { willReadFrequently: true });
+        const statusText = document.getElementById("status");
+        const takePhoto = document.getElementById("takePhoto");
+        const captureButton = document.getElementById("captureButton");
+        const capturedImage = document.getElementById("capturedImage");
+        const takePhotoInfo = document.getElementById("takePhotoInfo");
+        const userBox = document.getElementById("userBox");
+        const camaraLoader = document.getElementById("camaraLoader");
+        const downloadPhoto = document.getElementById("downloadPhoto");
+        const capturedMassage = document.getElementById("capturedMassage");
+        const ageGenderText = document.getElementById("ageGenderText");
+
+        let faceDetected = false;
+        let mediaStream = null;
+        let detectAge = null;
+        let detectGender = null;
+        let lastAge = null;
+        let lastGender = null;
+        let smoothingFactor = 0.2; // Adjusts smoothness (higher = slower updates)
+        let accuracyLevel = 0;
+
+        async function loadFaceAPI() {
+            console.log("🔄 Loading FaceAPI models...");
+            await faceapi.nets.tinyFaceDetector.loadFromUri("assets/models");
+            await faceapi.nets.faceLandmark68Net.loadFromUri("assets/models");
+            await faceapi.nets.ageGenderNet.loadFromUri("assets/models"); // Load age & gender model
+            await faceapi.nets.faceExpressionNet.loadFromUri("assets/models");
+            console.log("✅ FaceAPI models loaded successfully.");
+            startWebcam();
+        }
+
+        async function startWebcam() {
+            try {
+                userBox.classList.add("d-none");
+                camaraLoader.classList.remove("d-none");
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 400, height: 300 },
+                });
+                webcam.srcObject = stream;
+                mediaStream = stream; // Save the stream
+
+                webcam.onloadedmetadata = () => {
+                    camaraLoader.classList.add("d-none");
+                    takePhoto.classList.add("d-none");
+
+                    setTimeout(() => {
+                        captureButton.classList.remove("d-none");
+                    }, 2000);
+
+                    console.log("✅ Webcam started with dimensions:", webcam.videoWidth, webcam.videoHeight);
+                    detectFaceLive();
+                    takePhotoInfo.classList.remove("d-none");
+                };
+            } catch (error) {
+                statusText.innerText = "❌ Webcam access denied!";
+                takePhoto.disabled = false;
+                takePhoto.innerHTML = 'Enable Camara & Take Your Photo';
+                takePhoto.classList.remove("d-none");
+                captureButton.classList.add("d-none");
+                takePhotoInfo.classList.add("d-none");
+                userBox.classList.remove("d-none");
+            }
+        }
+
+        async function detectFaceLive() {
+            const displaySize = { width: webcam.videoWidth, height: webcam.videoHeight };
+            faceapi.matchDimensions(overlayCanvas, displaySize);
+
+            statusText.innerHTML = "Analyzing ...";
+
+            setInterval(async () => {
+                const detections = await faceapi
+                    .detectAllFaces(webcam, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withAgeAndGender()
+                    .withFaceExpressions();
+
+                overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+                if (detections.length === 1) {
+                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                    const detection = resizedDetections[0];
+
+                    // Draw bounding box
+                    const box = detection.detection.box;
+                    overlayCtx.strokeStyle = "green";
+                    overlayCtx.lineWidth = 3;
+                    overlayCtx.strokeRect(box.x, box.y, box.width, box.height);
+
+                    // Draw landmarks
+                    faceapi.draw.drawFaceLandmarks(overlayCanvas, resizedDetections);
+
+                    // Get Age & Gender with confidence score
+                    const rawAge = detection.age;
+                    const rawGender = detection.gender;
+                    const genderConfidence = detection.genderProbability.toFixed(2); // Accuracy level (0 to 1)
+
+                    // Get expressions
+                    const expressions = detection.expressions;
+                    const sorted = Object.entries(expressions).sort((a, b) => b[1] - a[1]);
+                    const [expressionName, expressionScore] = sorted[0];
+                    const expressionConfidence = Math.round(expressionScore * 100);
+
+                    // Define a small region (e.g., forehead area)
+                    const skinX = Math.floor(box.x + box.width * 0.35);
+                    const skinY = Math.floor(box.y + box.height * 0.15);
+                    const skinW = Math.floor(box.width * 0.3);
+                    const skinH = Math.floor(box.height * 0.1);
+
+                    // Get pixel data from that region
+                    const skinData = overlayCtx.getImageData(skinX, skinY, skinW, skinH);
+                    const data = skinData.data;
+
+                    let rTotal = 0, gTotal = 0, bTotal = 0, count = 0;
+
+                    // Iterate over every pixel (each pixel = 4 values: R, G, B, A)
+                    for (let i = 0; i < data.length; i += 4) {
+                        rTotal += data[i];
+                        gTotal += data[i + 1];
+                        bTotal += data[i + 2];
+                        count++;
+                    }
+
+                    const avgR = Math.round(rTotal / count);
+                    const avgG = Math.round(gTotal / count);
+                    const avgB = Math.round(bTotal / count);
+
+                    // Convert to HEX color (optional)
+                    const toHex = c => c.toString(16).padStart(2, '0');
+                    const skinColorHex = `#${toHex(avgR)}${toHex(avgG)}${toHex(avgB)}`;
+
+                    // Apply Exponential Moving Average (EMA) for smoothing
+                    detectAge = lastAge ? smoothingFactor * rawAge + (1 - smoothingFactor) * lastAge : rawAge;
+                    detectAge = Math.round(detectAge);
+                    detectGender = rawGender.charAt(0).toUpperCase() + rawGender.slice(1);
+                    lastAge = detectAge;
+                    lastGender = detectGender;
+
+                    // Only update UI if confidence is high
+                    if (genderConfidence > 0.7) {
+                        accuracyLevel = Math.round(genderConfidence * 100);
+                        ageGenderText.classList.remove("d-none");
+                        ageGenderText.innerHTML = `
+                            Gender: ${detectGender} & 
+                            Age: ${detectAge} (Accuracy: ${accuracyLevel}%)<br>
+                            Expression: ${expressionName} (${expressionConfidence}%) <br/> 
+                            Skin Color: ${skinColorHex}`;
+                    }
+
+                    statusText.classList.remove("text-dark", "fw-bold");
+                    statusText.innerText = "✅ Full face detected! You can capture now.";
+                    statusText.classList.remove("onex-danger");
+                    statusText.classList.add("onex-success");
+                    captureButton.disabled = false;
+                    faceDetected = true;
+                } else if (detections.length > 1) {
+                    statusText.classList.remove("text-dark", "fw-bold");
+                    statusText.innerText = "⚠️ Multiple faces detected! Only one person is allowed.";
+                    statusText.classList.remove("onex-success");
+                    statusText.classList.add("onex-danger");
+                    captureButton.disabled = true;
+                    faceDetected = false;
+                    ageGenderText.innerHTML = "";
+                    ageGenderText.classList.add("d-none");
+                } else {
+                    statusText.classList.remove("text-dark", "fw-bold");
+                    statusText.innerText = "❌ No face detected. Ensure full face visibility.";
+                    statusText.classList.remove("onex-success");
+                    statusText.classList.add("onex-danger");
+                    captureButton.disabled = true;
+                    faceDetected = false;
+                    ageGenderText.innerHTML = "";
+                    ageGenderText.classList.add("d-none");
+                }
+            }, 500);
+        }
+
+
+        takePhoto.addEventListener("click", () => {
+            takePhoto.disabled = true;
+            takePhoto.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...`;
+            loadFaceAPI();
+        });
+
+        let downloadLink = document.createElement("a");
+
+        captureButton.addEventListener("click", () => {
+            if (!faceDetected) return;
+
+            // Set canvas size to video size for crisp capture
+            overlayCanvas.width = webcam.videoWidth;
+            overlayCanvas.height = webcam.videoHeight;
+
+            overlayCtx.drawImage(webcam, 0, 0, overlayCanvas.width, overlayCanvas.height);
+            capturedImage.src = overlayCanvas.toDataURL("image/png");
+            capturedImage.classList.remove("d-none");
+            downloadPhoto.classList.remove("d-none");
+
+            let timestamp = new Date().toISOString().replace(/[:.-]/g, "_");
+            let uniqueFilename = `captured_photo_${timestamp}.png`;
+
+            downloadLink.href = capturedImage.src;
+            downloadLink.download = uniqueFilename;
+
+            capturedMassage.innerHTML = `Human face (Your Photo) authenticated successfully!<br/>
+                <span class="text-dark">Gender Detection:</span> <span class="text-primary">${detectGender}</span> 
+                & <span class="text-dark">Age Detection:</span> <span class="text-primary">${detectAge} Years</span><br/>
+                <span class="text-dark">Accuracy:</span> <span class="text-danger">${accuracyLevel}%</span>`;
+
+            resetSystem();
+        });
+
+
+        downloadPhoto.addEventListener("click", () => {
+            downloadLink.click();
+        });
+
+        const resetSystem = () => {
+            if (mediaStream) {
+                const tracks = mediaStream.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+
+            faceDetected = false;
+            mediaStream = null;
+            webcam.srcObject = null;
+
+            takePhoto.disabled = false;
+            takePhoto.innerHTML = 'Enable Camara & Take Your Photo';
+            takePhoto.classList.remove("d-none");
+
+            captureButton.disabled = false;
+            captureButton.innerHTML = 'Capture Photo';
+            captureButton.classList.add("d-none");
+
+            takePhotoInfo.classList.add("d-none");
+
+            userBox.classList.remove("d-none");
+            camaraLoader.classList.add("d-none");
+
+            overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+            statusText.innerText = "Authenticate Yourself";
+            statusText.classList.add('text-dark', 'fw-bold');
+
+            ageGenderText.innerHTML = "";
+            ageGenderText.classList.add("d-none");
+        };
+
+        setTimeout(() => {
+            Swal.close();
+        }, 5000);
+    </script>
+</body>
+
+</html>
